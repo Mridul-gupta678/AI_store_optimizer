@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 import Navigation from "@/components/Navigation";
+import { StoreProvider } from "@/context/StoreContext";
 
 export default function RootLayout({
   children,
@@ -16,19 +17,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {/* Background Orbs */}
-        <div className="bg-orb orb-1"></div>
-        <div className="bg-orb orb-2"></div>
-        
-        <nav className="global-nav">
-          <div className="container nav-container">
-            <div className="logo">KASPARO AI</div>
-            <Navigation />
+        <StoreProvider>
+          {/* Background Orbs */}
+          <div className="bg-orb orb-1"></div>
+          <div className="bg-orb orb-2"></div>
+          
+          <nav className="global-nav">
+            <div className="container nav-container">
+              <div className="logo">KASPARO AI</div>
+              <Navigation />
+            </div>
+          </nav>
+          <div className="page-content-wrapper">
+            {children}
           </div>
-        </nav>
-        <div className="page-content-wrapper">
-          {children}
-        </div>
+        </StoreProvider>
       </body>
     </html>
   );

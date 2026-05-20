@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { competitorDomain } = await req.json();
+    const { competitorDomain, myDomain } = await req.json();
     const groqKey = process.env.GROQ_API_KEY;
-    const myDomain = process.env.SHOPIFY_STORE_DOMAIN;
 
     if (!groqKey) {
       return NextResponse.json({ error: 'Missing Groq API key' }, { status: 500 });
     }
 
-    if (!competitorDomain) {
-      return NextResponse.json({ error: 'Competitor domain is required' }, { status: 400 });
+    if (!competitorDomain || !myDomain) {
+      return NextResponse.json({ error: 'Both Competitor domain and your domain are required' }, { status: 400 });
     }
 
     // Clean domain

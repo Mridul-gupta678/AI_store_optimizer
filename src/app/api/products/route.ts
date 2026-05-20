@@ -1,45 +1,35 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function POST(req: NextRequest) {
   try {
-    const domain = process.env.SHOPIFY_STORE_DOMAIN;
-    const token = process.env.SHOPIFY_ADMIN_API_ACCESS_TOKEN;
+    const { domain } = await req.json();
 
-    if (!domain || !token) {
-      return NextResponse.json({ error: 'Missing Shopify credentials' }, { status: 500 });
+    if (!domain) {
+      return NextResponse.json({ error: 'Missing Shopify domain' }, { status: 400 });
     }
 
-    const shopifyQuery = `
-      {
-        products(first: 10) {
-          edges {
-            node {
-              id
-              title
-              descriptionHtml
-              status
-            }
-          }
-        }
-      }
-    `;
+    const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '');
 
-    const shopifyResponse = await fetch(`https://${domain}/admin/api/2024-04/graphql.json`, {
-      method: 'POST',
+    const shopifyResponse = await fetch(`https://${cleanDomain}/products.json?limit=10`, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': token,
-      },
-      body: JSON.stringify({ query: shopifyQuery }),
+        'Accept': 'application/json',
+      }
     });
 
     const rawShopifyData = await shopifyResponse.json();
 
-    if (rawShopifyData.errors) {
-      return NextResponse.json({ error: 'Failed to fetch Shopify data' }, { status: 400 });
+    if (!shopifyResponse.ok || !rawShopifyData.products) {
+      return NextResponse.json({ error: 'Failed to fetch public products data' }, { status: 400 });
     }
 
-    const products = rawShopifyData.data?.products?.edges.map((e: any) => e.node) || [];
+    const products = rawShopifyData.products.map((p: any) => ({
+      id: p.id.toString(),
+      title: p.title,
+      descriptionHtml: p.body_html || '',
+      status: 'ACTIVE'
+    }));
+    
     return NextResponse.json({ products });
 
   } catch (error) {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useStore } from '@/context/StoreContext';
 
 type Product = {
   id: string;
@@ -10,6 +12,9 @@ type Product = {
 };
 
 export default function Simulator() {
+  const router = useRouter();
+  const { shopDomain } = useStore();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
@@ -17,14 +22,25 @@ export default function Simulator() {
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (data.products) setProducts(data.products);
-        setLoading(false);
+    if (shopDomain === null) {
+      const timer = setTimeout(() => router.push('/'), 100);
+      return () => clearTimeout(timer);
+    }
+    
+    if (shopDomain) {
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: shopDomain })
       })
-      .catch(() => setLoading(false));
-  }, []);
+        .then(res => res.json())
+        .then(data => {
+          if (data.products) setProducts(data.products);
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, [shopDomain, router]);
 
   const handleSimulate = async (e: React.FormEvent) => {
     e.preventDefault();

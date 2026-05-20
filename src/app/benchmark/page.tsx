@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useStore } from '@/context/StoreContext';
 
 type BenchmarkResult = {
   competitor_score: number;
@@ -13,14 +15,24 @@ type BenchmarkResult = {
 };
 
 export default function BenchmarkPage() {
+  const router = useRouter();
+  const { shopDomain } = useStore();
+
   const [domain, setDomain] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<BenchmarkResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (shopDomain === null) {
+      const timer = setTimeout(() => router.push('/'), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [shopDomain, router]);
+
   const runBenchmark = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!domain) return;
+    if (!domain || !shopDomain) return;
     
     setLoading(true);
     setError(null);
@@ -30,7 +42,10 @@ export default function BenchmarkPage() {
       const res = await fetch('/api/benchmark', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ competitorDomain: domain })
+        body: JSON.stringify({ 
+          competitorDomain: domain,
+          myDomain: shopDomain 
+        })
       });
       const data = await res.json();
       
