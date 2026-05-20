@@ -24,6 +24,10 @@
   <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript" alt="TypeScript"/>
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Mridul-gupta678/AI_store_optimizer/main/screenshot-dashboard.png" width="800" alt="AI Store Optimizer Dashboard"/>
+</p>
+
 ---
 
 ## 🧠 The Problem
@@ -68,6 +72,10 @@ Query: "Do you have anything for a beginner snowboarder on a budget?"
 but description lacks skill-level targeting. No price-value positioning detected.
 Confidence: 34% — WOULD NOT RECOMMEND due to insufficient context.
 ```
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Mridul-gupta678/AI_store_optimizer/main/screenshot-simulator.png" width="800" alt="AI Search Inference Terminal"/>
+</p>
 
 ### ⚔️ Competitor Intelligence Engine
 Enter a competitor's URL → get a side-by-side AI analysis showing their strengths, vulnerabilities, and a strategic action plan to outrank them in AI recommendations.
