@@ -1,0 +1,98 @@
+=========================================================
+AI STORE OPTIMIZER - PROJECT ARCHITECTURE & DOCUMENTATION
+=========================================================
+
+1. PROJECT OVERVIEW
+-------------------
+The AI Store Optimizer is a zero-install, enterprise-grade SaaS platform designed for Shopify merchants. It performs deep diagnostic scans of a store's public data footprint to determine its "AI Readiness" for conversational AI shopping agents (e.g., ChatGPT, Google AI Overviews). By analyzing semantic structure, product specifications, and policy clarity, the platform identifies representation gaps and generates optimized, AI-friendly structured data.
+
+For demo/hackathon purposes, the system operates on a "Zero-Install Architecture," bypassing complex Shopify OAuth requirements by dynamically scraping public `products.json` endpoints.
+
+2. TECHNOLOGY STACK
+-------------------
+• Frontend: Next.js 14 (App Router), React 18
+• Styling: Vanilla CSS (Custom Glassmorphic/Bento-Grid Design System)
+• Data Visualization: Recharts (for historical trend plotting)
+• Backend: Next.js Serverless API Routes
+• AI/Inference Engine: Groq API utilizing `Llama-3.3-70b-versatile`
+• Data Ingestion: Shopify Public API (`/products.json`)
+• State Management: React Context API + LocalStorage (`StoreContext.tsx`)
+• Hosting/Deployment: Vercel
+
+3. CORE ARCHITECTURE & DATA FLOW
+--------------------------------
+• Global State (StoreContext):
+  The application is wrapped in a `<StoreProvider>`. When a user enters their store URL (e.g., `gymshark.com`) on the Login/Connect page (`/`), it is formatted and saved to React State and `localStorage`.
+  
+• Client-Server Handshake:
+  The Next.js frontend pages (`/dashboard`, `/simulator`, `/benchmark`, `/products`) read the `shopDomain` from the context and pass it in the JSON body of POST requests to the backend API routes.
+
+• Data Ingestion & Sanitization Engine:
+  The backend API routes receive the domain, fetch the raw product catalog from `https://{domain}/products.json`, strip out heavy HTML tags, and truncate strings to prevent exceeding the Groq token limits.
+
+• AI Perception Engine:
+  The cleaned store vectors are injected into highly engineered system prompts and sent to the Groq Llama 3 model. The backend enforces `response_format: { type: "json_object" }` to guarantee strict JSON schemas for the React frontend to map over. 
+  *Note: A failsafe mock-response system is in place to intercept and handle rate-limiting (HTTP 429) errors gracefully without crashing the UI.*
+
+4. API ENDPOINTS
+----------------
+
+A. Store Diagnostics Engine
+---------------------------
+Endpoint: /api/analyze
+Method: POST
+Payload: { "domain": "example.myshopify.com" }
+Usage: Powers the main Dashboard. Fetches the top public products, cleans the HTML footprint, and asks Llama 3 to simulate how an AI agent perceives the store.
+Returns: JSON object containing:
+  - `score`: Overall AI readiness (0-100)
+  - `overall_perception`: High-level summary
+  - `critical_gaps`: Array of missing semantic data points with suggested fixes
+  - `optimized_areas`: Array of identified strengths
+
+B. System Connectivity
+----------------------
+Endpoint: /api/system
+Method: POST
+Payload: { "domain": "example.myshopify.com" }
+Usage: Verifies the connection to the store. Fetches the total public product count.
+Returns: Store metadata (domain, mock email, mock plan, product count) and engine status.
+
+C. Competitor Benchmarking
+--------------------------
+Endpoint: /api/benchmark
+Method: POST
+Payload: { "myDomain": "my-store.com", "competitorDomain": "target-store.com" }
+Usage: Powers the Competitor Intelligence page. Scrapes the target competitor's public data and runs a comparative AI analysis against the user's store context.
+Returns: Competitor score, strengths, vulnerabilities, and strategic advice on how to outrank them in semantic search.
+
+D. Product Catalog Sync
+-----------------------
+Endpoint: /api/products
+Method: POST
+Payload: { "domain": "example.myshopify.com" }
+Usage: Syncs the raw product catalog for the Simulator and Auto-Fix hubs.
+Returns: Array of formatted product objects { id, title, descriptionHtml, status }.
+
+E. AI Search Simulator (Inference Terminal)
+-------------------------------------------
+Endpoint: /api/simulate-search
+Method: POST
+Payload: { "query": "Do you have beginner snowboards?", "products": [...] }
+Usage: Powers the live Simulator Terminal. Passes the user's hypothetical search query alongside the store's product vectors to Llama 3.
+Returns: JSON object with `overall_verdict`, `confidence_score` (0-100), and a highly detailed `reasoning` log explaining *why* the AI chose (or failed to choose) a product.
+
+F. Auto-Fix Content Generator
+-----------------------------
+Endpoint: /api/optimize
+Method: POST
+Payload: { "title": "Product Title", "description": "Raw HTML Description" }
+Usage: Generates an AI-optimized title and description with rich semantic keywords designed specifically for NLP parsers.
+Returns: JSON object with `optimized_title`, `optimized_description_html`, `ai_readability_score`, `quality_gaps`, and `misrepresentation_risks`.
+
+G. Product Update Simulator
+---------------------------
+Endpoint: /api/products/update
+Method: POST
+Payload: { "id": "12345", "descriptionHtml": "<p>Optimized text</p>" }
+Usage: Powers the "Push to Live Store" action. 
+Note: Since the public SaaS demo lacks Shopify OAuth write permissions, this endpoint simulates a 1.5-second network delay and returns a mock success response to demonstrate the UI flow seamlessly.

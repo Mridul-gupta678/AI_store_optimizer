@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Clean domain
-    const cleanDomain = competitorDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const cleanDomain = competitorDomain.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
 
     // 1. Fetch Competitor Public Data (Shopify exposes /products.json publicly)
     let competitorProducts = [];
